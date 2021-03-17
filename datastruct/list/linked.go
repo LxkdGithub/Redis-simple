@@ -2,6 +2,7 @@ package list
 
 import (
 	"bytes"
+	"reflect"
 )
 
 type LinkedList struct {
@@ -23,8 +24,18 @@ type node struct {
 很多操作要靠DB层面的
  */
 
+
+func Make() *LinkedList {
+	return &LinkedList{
+		first: nil,
+		last: nil,
+		size: 0,
+	}
+}
+
+
 // 返回op后list总数
-func (list *LinkedList)lpush(val interface{}) int {
+func (list *LinkedList)Lpush(val interface{}) int {
 	// 有没有在DB层面就知道了
 	// 这里只管底层数据结构的操作
 	if list == nil {
@@ -47,7 +58,7 @@ func (list *LinkedList)lpush(val interface{}) int {
 }
 
 // 返回op后list总数
-func (list *LinkedList)rpush(val interface{}) int {
+func (list *LinkedList)Rpush(val interface{}) int {
 	if list == nil {
 		panic("list is nil")
 	}
@@ -68,7 +79,7 @@ func (list *LinkedList)rpush(val interface{}) int {
 }
 
 // 返回pop的element
-func (list *LinkedList)lpop() interface{} {
+func (list *LinkedList)Lpop() interface{} {
 	if list == nil {
 		panic("list is nil")
 	}
@@ -87,7 +98,7 @@ func (list *LinkedList)lpop() interface{} {
 }
 
 // 返回pop的element
-func (list *LinkedList)rpop() interface{} {
+func (list *LinkedList)Rpop() interface{} {
 	if list == nil {
 		panic("list is nil")
 	}
@@ -119,12 +130,12 @@ func (list *LinkedList)rpop() interface{} {
 //	return nil
 //}
 
-func (list *LinkedList)brpop() interface{} {
+func (list *LinkedList)Brpop() interface{} {
 	return nil
 }
 
 // 这里要注意验证位置的合理(在DB层面再写验证逻辑，然后调用这里)
-func (list *LinkedList)lrange(start int, stop int) []interface{} {
+func (list *LinkedList)Lrange(start int, stop int) []interface{} {
 	if list.size == 0 {
 		return nil
 	}
@@ -140,20 +151,27 @@ func (list *LinkedList)lrange(start int, stop int) []interface{} {
 }
 
 // 返回count
-func (list *LinkedList)llen() int {
+func (list *LinkedList)Llen() int {
 	return list.size
 }
 
 // 返回移除个数
 // 大的类型比如list,set这些是在DB层面验证，例如list内部的类型比较在函数内完成
 // 数据都直接按照[]byte存储就好
-func (list *LinkedList)lrem(count int, val interface{}) int {
+func (list *LinkedList)Lrem(count int, val interface{}) int {
 	if list.size == 0 {
 		return 0
+	}
+	// 值相等的全部删除(将count设置的大一些)
+	if count == -1 {
+		count = list.size
 	}
 	relCount := 0
 	n := list.first
 	for n != nil {
+		if relCount >= count {
+			return relCount
+		}
 		if bytes.Compare(n.val.([]byte), val.([]byte)) == 0 {
 			n.prev.next = n.next
 			n.next.prev = n.prev
@@ -165,7 +183,7 @@ func (list *LinkedList)lrem(count int, val interface{}) int {
 }
 
 // 没有返回nil
-func (list *LinkedList)lindex(index int) interface{} {
+func (list *LinkedList)Lindex(index int) interface{} {
 	if index < list.size / 2 {
 		n := list.first
 		for i := 0;i < index;i++ {
@@ -182,7 +200,7 @@ func (list *LinkedList)lindex(index int) interface{} {
 }
 
 // 返回是否成功
-func (list *LinkedList)ltrim(start, stop int) bool {
+func (list *LinkedList)Ltrim(start, stop int) bool {
 	// assert 0 <= start < end < list.size
 	// DB保证的, 如果不是，那list就变为空
 	i := 0
@@ -201,7 +219,7 @@ func (list *LinkedList)ltrim(start, stop int) bool {
 }
 
 // 是否成功
-func (list *LinkedList)lset(index int, val interface{}) bool {
+func (list *LinkedList)Lset(index int, val interface{}) bool {
 	// DB已保证index不超过范围(0, list.size-1)
 	n := list.first
 	for i := 0; i < index; i++ {
@@ -212,7 +230,7 @@ func (list *LinkedList)lset(index int, val interface{}) bool {
 }
 
 // 返回个数
-func (list *LinkedList)linsert(isBefore bool, pivot interface{} , val interface{}) int {
+func (list *LinkedList)Linsert(isBefore bool, pivot interface{} , val interface{}) int {
 	n := list.first
 	for n != nil {
 		if n.val == pivot {
@@ -230,6 +248,32 @@ func (list *LinkedList)linsert(isBefore bool, pivot interface{} , val interface{
 	}
 	return 0 // count
 }
+
+
+func (list *LinkedList)Contains(val interface{}) bool {
+	node := list.first
+	obj_types := reflect.TypeOf(val)
+	obj_value := reflect.ValueOf(val)
+	for node != nil {
+		if reflect.TypeOf(node.val) == obj_types &&
+			reflect.ValueOf(node.val) == obj_value{
+			return true
+		}
+		node = node.next
+	}
+	return false
+}
+
+func (list *LinkedList)Foreach(F func(i int, c interface{}) bool) {
+	j := 0
+	node := list.first
+	for node != nil {
+		F(j, node.val)
+		node = node.next
+		j++
+	}
+}
+
 
 
 

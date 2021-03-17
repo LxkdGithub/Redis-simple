@@ -1,5 +1,3 @@
-//+build linux
-
 // AOF (append only file)日志追加
 // 通过异步的记录文件能保存最新的数据库状态
 // 以便恢复
@@ -18,14 +16,12 @@ package db
 import (
 	"container/list"
 	"fmt"
-	"github.com/LxkdGithub/Code/Redis-simple/config"
-	"github.com/LxkdGithub/Redis-simple/interface/redis"
-	"github.com/LxkdGithub/Redis-simple/lib/logger"
-	"github.com/LxkdGithub/Redis-simple/pubsub"
-	"github.com/LxkdGithub/Redis-simple/redis/"
 	"os"
-	"github.com/LxkdGithub/Redis-simple/datastruct/dict"
-	"github.com/LxkdGithub/Redis-simple/datastruct/lock"
+	"redis.simple/datastruct/dict"
+	"redis.simple/datastruct/lock"
+	"redis.simple/lib/logger"
+	"redis.simple/redis/reply"
+	"redis.simple/pubsub"
 	"runtime/debug"
 	"strings"
 	"sync"

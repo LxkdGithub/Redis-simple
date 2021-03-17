@@ -1,4 +1,4 @@
-package relpy
+package reply
 
 // UnknownErr
 type UnknownErrReply struct {}

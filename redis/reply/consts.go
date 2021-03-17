@@ -1,4 +1,4 @@
-package relpy
+package reply
 
 type PongReply struct {}
 

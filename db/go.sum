@@ -3,6 +3,8 @@ github.com/HDT3213/godis v0.0.0-20210206023552-6edf756d45b2/go.mod h1:JAuGEDz8Ep
 github.com/LxkdGithub/Code v0.0.0-20210224074650-93d0a10b7335 h1:QMojLwMF4C8R0IFPkYBeUWxXOFEDDf9qE/JG8nAWdBk=
 github.com/LxkdGithub/Code/Redis-simple v0.0.0-20210224074650-93d0a10b7335 h1:XpyOeSHs7bivUlcuegdvEinzTJUsqOkKmohzZ7AHfGw=
 github.com/LxkdGithub/Code/Redis-simple/config v0.0.0-20210224074650-93d0a10b7335 h1:ICrZi/zJeoqy9ySOqx8iCW1UBTG0xJF3BNQelPjvuj4=
+github.com/LxkdGithub/Redis-simple/config v0.0.0-20210224075239-60deec594b74 h1:iJoEG9GHeDZx4IH7GY1F4PIkTjM1Yr9FLL6752Ovjg0=
+github.com/LxkdGithub/Redis-simple/redis v0.0.0-20210224075239-60deec594b74 h1:reDOOgDQ+IjyqtvyrSBKVCVu1in9vPnCZrps0tneZWU=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fortytw2/leaktest v1.3.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=

@@ -7,18 +7,16 @@ import (
 	"sync/atomic"
 )
 
-const (
-	STRING = 0
-	LIST = 1
-	HASH = 2
-	SET = 3
-	ZSET = 4
-	BITMAP = 5
-)
 
+
+// redis 取到key后判断类别之用
 type Value struct {
 	types uint8 // 类型(从0-5)
 	val interface{}
+}
+
+func (value *Value)Type() uint8 {
+	return value.types
 }
 
 type Shard struct {
@@ -57,7 +55,7 @@ func MakeConcurrent(shardCount int) *ConcurrentDict {
 	table := make([]*Shard, shardCount)
 	for i:=0;i<shardCount;i++ {
 		table[i] = &Shard{
-			m: make(map[string]interface{}),
+			m: make(map[string]Value),
 		}
 	}
 	d := &ConcurrentDict{
@@ -117,7 +115,7 @@ func (dict *ConcurrentDict)Get(key string) (val interface{}, exists bool) {
 }
 
 
-func (dict *ConcurrentDict)Put(key string, val interface{}) (resultCode int) {
+func (dict *ConcurrentDict)Put(key string, val interface{}, types uint8) (resultCode int) {
 	if dict == nil {
 		panic("dict is nil")
 	}
@@ -128,12 +126,16 @@ func (dict *ConcurrentDict)Put(key string, val interface{}) (resultCode int) {
 	shard.mutex.Lock()
 	defer shard.mutex.Unlock()
 
+	value := Value{
+		types: types,
+		val: val,
+	}
 	// 还要加count,所以要判断是否存在
 	if _, ok := shard.m[key]; ok {
-		shard.m[key] = val
+		shard.m[key] = value
 		return
 	} else {
-		shard.m[key] = val
+		shard.m[key] = value
 		dict.addCount(1)
 		return 1
 	}
@@ -155,7 +157,7 @@ func (dict *ConcurrentDict)addCount(count int) {
 	atomic.AddInt32(&dict.count, 1)
 }
 
-func (dict *ConcurrentDict)PutIfExists(key string, val interface{},) (result int) {
+func (dict *ConcurrentDict)PutIfExists(key string, val interface{}, types uint8) (result int) {
 	if dict == nil {
 		panic("dict is nil")
 	}
@@ -165,15 +167,19 @@ func (dict *ConcurrentDict)PutIfExists(key string, val interface{},) (result int
 	shard.mutex.Lock()
 	defer shard.mutex.Unlock()
 
+	value := Value{
+		types: types,
+		val: val,
+	}
 	if _, ok := shard.m[key]; ok {
-		shard.m[key] = val
+		shard.m[key] = value
 		return 1
 	} else {
 		return 0
 	}
 }
 
-func (dict *ConcurrentDict)PutIfAbsent(key string, val interface{}) (result int) {
+func (dict *ConcurrentDict)PutIfAbsent(key string, val interface{}, types uint8) (result int) {
 	if dict == nil {
 		panic("dict is nil")
 	}
@@ -183,10 +189,14 @@ func (dict *ConcurrentDict)PutIfAbsent(key string, val interface{}) (result int)
 	shard.mutex.Lock()
 	defer shard.mutex.Unlock()
 
+	value := Value{
+		types: types,
+		val: val,
+	}
 	if _, ok := shard.m[key]; ok {
 		return 0
 	} else {
-		shard.m[key] = val
+		shard.m[key] = value
 		dict.addCount(1)
 		return 1
 	}
@@ -213,7 +223,7 @@ func (dict *ConcurrentDict)Remove(key string) (result int) {
 
 
 // but may not conduct on which inserted during the traversal(traverse 遍历)
-func (dict *ConcurrentDict)Foreach(consumer Consumer) {
+func (dict *ConcurrentDict)ForEach(consumer Consumer) {
 	if dict == nil {
 		panic("dict is nil")
 	}
@@ -223,7 +233,7 @@ func (dict *ConcurrentDict)Foreach(consumer Consumer) {
 			shard.mutex.RLock()
 			ifContinue := consumer(key, val)
 			defer shard.mutex.RUnlock()
-			if !ifContinue {
+			if !ifContinue{
 				return
 			}
 		}
